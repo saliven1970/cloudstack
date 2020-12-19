@@ -174,8 +174,26 @@ public class DeployAsIsHelperImpl implements DeployAsIsHelper {
                 hypervisor.toString(), minimumHypervisorVersion);
 
         if (CollectionUtils.isNotEmpty(guestOsMappings)) {
-            GuestOSHypervisorVO mapping = guestOsMappings.get(0);
-            long guestOsId = mapping.getGuestOsId();
+            Long guestOsId = null;
+            if (guestOsMappings.size() == 1) {
+                GuestOSHypervisorVO mapping = guestOsMappings.get(0);
+                guestOsId = mapping.getGuestOsId();
+            } else {
+                if (!StringUtils.isEmpty(guestOsDescription)) {
+                    int minimumEdits = Integer.MAX_VALUE;
+                    for (GuestOSHypervisorVO guestOSHypervisorVO : guestOsMappings) {
+                        GuestOSVO guestOSVO = guestOSDao.findById(guestOSHypervisorVO.getGuestOsId());
+                        int temporaryMin = com.cloud.utils.StringUtils.minimumEditDistance(guestOsDescription, guestOSVO.getDisplayName());
+                        if (temporaryMin < minimumEdits) {
+                            minimumEdits = temporaryMin;
+                            guestOsId = guestOSHypervisorVO.getGuestOsId();
+                        }
+                    }
+                } else {
+                    GuestOSHypervisorVO mapping = guestOsMappings.get(guestOsMappings.size()-1);
+                    guestOsId = mapping.getGuestOsId();
+                }
+            }
             LOGGER.info("Updating deploy-as-is template guest OS to " + guestOsType);
             updateTemplateGuestOsId(template, guestOsId);
         } else {
