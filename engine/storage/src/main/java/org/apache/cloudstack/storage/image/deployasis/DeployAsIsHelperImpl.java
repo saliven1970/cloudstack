@@ -180,16 +180,15 @@ public class DeployAsIsHelperImpl implements DeployAsIsHelper {
                 guestOsId = mapping.getGuestOsId();
             } else {
                 if (!StringUtils.isEmpty(guestOsDescription)) {
-                    int minimumEdits = Integer.MAX_VALUE;
                     for (GuestOSHypervisorVO guestOSHypervisorVO : guestOsMappings) {
                         GuestOSVO guestOSVO = guestOSDao.findById(guestOSHypervisorVO.getGuestOsId());
-                        int temporaryMin = com.cloud.utils.StringUtils.minimumEditDistance(guestOsDescription, guestOSVO.getDisplayName());
-                        if (temporaryMin < minimumEdits) {
-                            minimumEdits = temporaryMin;
+                        if (guestOsDescription.equalsIgnoreCase(guestOSVO.getDisplayName())) {
                             guestOsId = guestOSHypervisorVO.getGuestOsId();
+                            break;
                         }
                     }
-                } else {
+                }
+                if (null == guestOsId) {
                     GuestOSHypervisorVO mapping = guestOsMappings.get(guestOsMappings.size()-1);
                     guestOsId = mapping.getGuestOsId();
                 }
